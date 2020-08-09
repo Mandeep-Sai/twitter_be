@@ -6,6 +6,7 @@ const fs = require("fs-extra");
 
 const router = express.Router();
 const upload = multer({});
+const ProfilesModel = require("../profiles/schema");
 router.get("/", async (req, res) => {
   const tweets = await tweetModel.find();
   res.send(tweets);
@@ -20,6 +21,7 @@ router.get("/:id", async (req, res) => {
 });
 
 router.post("/", upload.single("picture"), async (req, res) => {
+  const user = await ProfilesModel.findOne({ username: req.headers.username });
   try {
     if (req.file) {
       const imagesPath = path.join(__dirname, "/images");
@@ -41,9 +43,10 @@ router.post("/", upload.single("picture"), async (req, res) => {
               req.file.originalname.split(".").pop()
           )
         ),
+        user,
       };
     } else {
-      var obj = { ...req.body };
+      var obj = { ...req.body, user };
     }
     //
     const newTweet = new tweetModel(obj);
@@ -89,7 +92,7 @@ router.put("/:id", upload.single("picture"), async (req, res) => {
 //DELETE
 
 router.delete("/:id", async (req, res) => {
-  await postModel.findByIdAndDelete(req.params.id);
+  await tweetModel.findByIdAndDelete(req.params.id);
   res.send("Deleted sucessfully");
 });
 

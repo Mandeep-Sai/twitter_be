@@ -1,5 +1,5 @@
 const { Schema, model } = require("mongoose");
-//const ProfilesModel = require("../profiles/schema");
+const ProfilesModel = require("../profiles/schema");
 
 const tweetSchema = new Schema(
   {
@@ -7,14 +7,10 @@ const tweetSchema = new Schema(
       type: String,
       required: true,
     },
-    username: {
-      type: String,
-      required: true,
-    },
     image: {
       type: Buffer,
     },
-    //user: ProfilesModel.schema,
+    user: ProfilesModel.schema,
   },
   { timestamps: true }
 );
