@@ -19,44 +19,55 @@ router.get("/:id", async (req, res) => {
     res.send(tweet);
   });
 });
-
-router.post("/", upload.single("picture"), async (req, res) => {
+router.post("/", async (req, res) => {
   const user = await ProfilesModel.findOne({ username: req.headers.username });
+  var obj = { ...req.body, user };
+  const newTweet = new tweetModel(obj);
+  await newTweet.save();
+  res.send(newTweet._id);
+});
+
+router.post("/:id", upload.single("picture"), async (req, res) => {
   try {
     if (req.file) {
       const imagesPath = path.join(__dirname, "/images");
       await fs.writeFile(
         path.join(
           imagesPath,
-          req.body.username + "." + req.file.originalname.split(".").pop()
+          req.headers.username +
+            req.file.originalname +
+            "." +
+            req.file.originalname.split(".").pop()
         ),
         req.file.buffer
       );
       var obj = {
-        ...req.body,
         image: fs.readFileSync(
           path.join(
             __dirname +
               "/images/" +
-              req.body.username +
+              req.headers.username +
+              req.file.originalname +
               "." +
               req.file.originalname.split(".").pop()
           )
         ),
-        user,
       };
-    } else {
-      var obj = { ...req.body, user };
     }
-    //
-    const newTweet = new tweetModel(obj);
-    await newTweet.save();
+    await tweetModel.findByIdAndUpdate(req.params.id, obj);
     res.send("tweeted");
   } catch (error) {
     console.log(error);
   }
 });
 
+router.put("/:id", async (req, res) => {
+  console.log(req.params.id);
+
+  const tweet = await tweetModel.findByIdAndUpdate(req.params.id, req.body);
+  res.send("edited successfully");
+});
+/*
 //PUT
 router.put("/:id", upload.single("picture"), async (req, res) => {
   try {
@@ -88,7 +99,7 @@ router.put("/:id", upload.single("picture"), async (req, res) => {
     res.send("updated sucessfully");
   } catch (error) {}
 });
-
+*/
 //DELETE
 
 router.delete("/:id", async (req, res) => {
