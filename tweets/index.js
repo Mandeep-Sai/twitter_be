@@ -20,6 +20,7 @@ router.get("/:id", async (req, res) => {
   });
 });
 router.post("/", async (req, res) => {
+  console.log(req.body);
   const user = await ProfilesModel.findOne({ username: req.headers.username });
   var obj = { ...req.body, user };
   const newTweet = new tweetModel(obj);

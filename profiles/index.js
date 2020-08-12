@@ -9,7 +9,7 @@ const upload = multer({});
 // Get all profiles
 profilesRouter.get("/", async (req, res, next) => {
   try {
-    const profiles = await ProfilesSchema.find(req.query);
+    const profiles = await ProfilesSchema.find();
     res.status(200).send(profiles);
   } catch (error) {
     next(error);
