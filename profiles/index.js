@@ -68,40 +68,49 @@ profilesRouter.post(
 
 // Post a new profile
 profilesRouter.post("/", upload.single("image"), async (req, res, next) => {
-  try {
-    if (req.file) {
-      const imagesPath = path.join(__dirname, "/images");
-      await fs.writeFile(
-        path.join(
-          imagesPath,
-          req.body.username + "." + req.file.originalname.split(".").pop()
-        ),
-        req.file.buffer
-      );
-      var obj = {
-        ...req.body,
-        image: fs.readFileSync(
+  const username = req.body.username;
+  const email = req.body.email;
+  const profile = await ProfilesSchema.findOne({
+    $or: [{ username: username }, { email: email }],
+  });
+  if (profile) {
+    res.status(400).send("username exists");
+  } else {
+    try {
+      if (req.file) {
+        const imagesPath = path.join(__dirname, "/images");
+        await fs.writeFile(
           path.join(
-            __dirname +
-              "/images/" +
-              req.body.username +
-              "." +
-              req.file.originalname.split(".").pop()
-          )
-        ),
-      };
-    } else {
-      var obj = {
-        ...req.body,
-        image: fs.readFileSync(path.join(__dirname, "./images/default.png")),
-      };
-    }
+            imagesPath,
+            req.body.username + "." + req.file.originalname.split(".").pop()
+          ),
+          req.file.buffer
+        );
+        var obj = {
+          ...req.body,
+          image: fs.readFileSync(
+            path.join(
+              __dirname +
+                "/images/" +
+                req.body.username +
+                "." +
+                req.file.originalname.split(".").pop()
+            )
+          ),
+        };
+      } else {
+        var obj = {
+          ...req.body,
+          image: fs.readFileSync(path.join(__dirname, "./images/default.png")),
+        };
+      }
 
-    const newProfile = new ProfilesSchema(obj);
-    await newProfile.save();
-    res.send("ok");
-  } catch (error) {
-    next(error);
+      const newProfile = new ProfilesSchema(obj);
+      await newProfile.save();
+      res.send("ok");
+    } catch (error) {
+      next(error);
+    }
   }
 });
 
