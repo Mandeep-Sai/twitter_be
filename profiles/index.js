@@ -34,6 +34,24 @@ profilesRouter.get("/:username", async (req, res, next) => {
   }
 });
 
+// searching profile with a alan voice AI
+profilesRouter.get("/voice/:username", async (req, res, next) => {
+  try {
+    const name = req.params.username;
+    const profile = await ProfilesSchema.find({ username: name });
+    if (profile) {
+      res.status(200).send(profile);
+    } else {
+      const error = new Error();
+      error.httpStatusCode = 404;
+      next(error);
+    }
+  } catch (error) {
+    console.log(error);
+    next("While reading profiles list a problem occurred!");
+  }
+});
+
 // Post a new image for a profile
 profilesRouter.post(
   "/:id/uploadImage",
