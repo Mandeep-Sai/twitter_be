@@ -55,7 +55,7 @@ profilesRouter.get("/voice/:username", async (req, res, next) => {
 // Post a new image for a profile
 profilesRouter.post(
   "/:id/uploadImage",
-  upload.single("image"),
+  upload.single("picture"),
   async (req, res) => {
     const imagesPath = path.join(__dirname, "/images");
     await fs.writeFile(

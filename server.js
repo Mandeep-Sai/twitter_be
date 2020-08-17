@@ -5,7 +5,7 @@ const tweetRoutes = require("./tweets");
 const profileRoutes = require("./profiles");
 
 const server = express();
-server.use(express.json());
+server.use(express.json({ limit: "50mb" }));
 server.use(cors());
 server.use("/tweets", tweetRoutes);
 server.use("/profiles", profileRoutes);
