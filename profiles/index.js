@@ -5,6 +5,7 @@ const multer = require("multer");
 const fs = require("fs-extra");
 const path = require("path");
 const upload = multer({});
+const bcrypt = require("bcrypt");
 
 // Get all profiles
 profilesRouter.get("/", async (req, res, next) => {
@@ -51,6 +52,7 @@ profilesRouter.get("/voice/:username", async (req, res, next) => {
     next("While reading profiles list a problem occurred!");
   }
 });
+// register
 
 // Post a new image for a profile
 profilesRouter.post(
@@ -85,52 +87,60 @@ profilesRouter.post(
 );
 
 // Post a new profile
-profilesRouter.post("/", upload.single("image"), async (req, res, next) => {
-  const username = req.body.username;
-  const email = req.body.email;
-  const profile = await ProfilesSchema.findOne({
-    $or: [{ username: username }, { email: email }],
-  });
-  if (profile) {
-    res.status(400).send("username exists");
-  } else {
-    try {
-      if (req.file) {
-        const imagesPath = path.join(__dirname, "/images");
-        await fs.writeFile(
-          path.join(
-            imagesPath,
-            req.body.username + "." + req.file.originalname.split(".").pop()
-          ),
-          req.file.buffer
-        );
-        var obj = {
-          ...req.body,
-          image: fs.readFileSync(
+profilesRouter.post(
+  "/register",
+  upload.single("image"),
+  async (req, res, next) => {
+    const username = req.body.username;
+    const email = req.body.email;
+    const profile = await ProfilesSchema.findOne({
+      $or: [{ username: username }, { email: email }],
+    });
+    const plainPassword = req.body.password;
+    req.body.password = await bcrypt.hash(plainPassword, 8);
+    if (profile) {
+      res.status(400).send("username exists");
+    } else {
+      try {
+        if (req.file) {
+          const imagesPath = path.join(__dirname, "/images");
+          await fs.writeFile(
             path.join(
-              __dirname +
-                "/images/" +
-                req.body.username +
-                "." +
-                req.file.originalname.split(".").pop()
-            )
-          ),
-        };
-      } else {
-        var obj = {
-          ...req.body,
-          image: fs.readFileSync(path.join(__dirname, "./images/default.png")),
-        };
-      }
+              imagesPath,
+              req.body.username + "." + req.file.originalname.split(".").pop()
+            ),
+            req.file.buffer
+          );
+          var obj = {
+            ...req.body,
+            image: fs.readFileSync(
+              path.join(
+                __dirname +
+                  "/images/" +
+                  req.body.username +
+                  "." +
+                  req.file.originalname.split(".").pop()
+              )
+            ),
+          };
+        } else {
+          var obj = {
+            ...req.body,
+            image: fs.readFileSync(
+              path.join(__dirname, "./images/default.png")
+            ),
+          };
+        }
 
-      const newProfile = new ProfilesSchema(obj);
-      await newProfile.save();
-      res.send("ok");
-    } catch (error) {
-      next(error);
+        const newProfile = new ProfilesSchema(obj);
+        await newProfile.save();
+        res.send("ok");
+      } catch (error) {
+        next(error);
+      }
     }
   }
-});
+);
 
 // Modifie a profile
 profilesRouter.put("/:id", async (req, res, next) => {
