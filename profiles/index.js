@@ -6,6 +6,7 @@ const fs = require("fs-extra");
 const path = require("path");
 const upload = multer({});
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 // Get all profiles
 profilesRouter.get("/", async (req, res, next) => {
@@ -52,7 +53,32 @@ profilesRouter.get("/voice/:username", async (req, res, next) => {
     next("While reading profiles list a problem occurred!");
   }
 });
-// register
+// login
+
+profilesRouter.post("/login", async (req, res) => {
+  const profile = await ProfilesSchema.findOne({
+    $or: [{ username: req.body.username }, { email: req.body.username }],
+  });
+  const isAuthorized = await bcrypt.compare(
+    req.body.password,
+    profile.password
+  );
+  console.log(isAuthorized);
+  if (isAuthorized) {
+    const secretkey = process.env.SECRET_KEY;
+    const payload = { id: profile._id };
+    const token = await jwt.sign(payload, secretkey, { expiresIn: "1 week" });
+    console.log(token);
+    res.cookie("accessToken", token, {
+      httpOnly: true,
+      sameSite: "none",
+      secure: false,
+    });
+    res.send("ok");
+  } else {
+    res.status(401).send("Invalid credentials");
+  }
+});
 
 // Post a new image for a profile
 profilesRouter.post(

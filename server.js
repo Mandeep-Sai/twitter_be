@@ -3,10 +3,26 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 const tweetRoutes = require("./tweets");
 const profileRoutes = require("./profiles");
+const dotenv = require("dotenv");
+const cookieParser = require("cookie-parser");
+dotenv.config();
+
+const whitelist = ["http://localhost:3000"];
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (whitelist.indexOf(origin) !== -1 || !origin) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+};
 
 const server = express();
 server.use(express.json({ limit: "50mb" }));
-server.use(cors());
+server.use(cookieParser());
+server.use(cors(corsOptions));
 server.use("/tweets", tweetRoutes);
 server.use("/profiles", profileRoutes);
 

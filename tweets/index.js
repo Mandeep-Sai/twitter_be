@@ -3,13 +3,23 @@ const tweetModel = require("./schema");
 const path = require("path");
 const multer = require("multer");
 const fs = require("fs-extra");
+const jwt = require("jsonwebtoken");
 
 const router = express.Router();
 const upload = multer({});
 const ProfilesModel = require("../profiles/schema");
+
 router.get("/", async (req, res) => {
-  const tweets = await tweetModel.find();
-  res.send(tweets);
+  try {
+    const token = req.cookies.accessToken;
+    const decoded = await jwt.verify(token, process.env.SECRET_KEY);
+    console.log(decoded);
+    const tweets = await tweetModel.find();
+    res.send(tweets);
+  } catch (error) {
+    console.log(error);
+    res.status(401).send("Token expired");
+  }
 });
 
 // GET a specific tweet
@@ -21,7 +31,9 @@ router.get("/:id", async (req, res) => {
 });
 router.post("/", async (req, res) => {
   console.log(req.body);
-  const user = await ProfilesModel.findOne({ username: req.headers.username });
+  const token = req.cookies.accessToken;
+  const decoded = await jwt.verify(token, process.env.SECRET_KEY);
+  const user = await ProfilesModel.findOne({ _id: decoded.id });
   var obj = { ...req.body, user };
   const newTweet = new tweetModel(obj);
   await newTweet.save();
@@ -63,10 +75,13 @@ router.post("/:id", upload.single("picture"), async (req, res) => {
 });
 
 router.put("/:id", async (req, res) => {
-  console.log(req.params.id);
-
-  const tweet = await tweetModel.findByIdAndUpdate(req.params.id, req.body);
-  res.send("edited successfully");
+  const token = req.cookies.accessToken;
+  const decoded = await jwt.verify(token, process.env.SECRET_KEY);
+  const user = await ProfilesModel.findOne({ _id: decoded.id });
+  if (user) {
+    const tweet = await tweetModel.findByIdAndUpdate(req.params.id, req.body);
+    res.send("edited successfully");
+  }
 });
 /*
 //PUT
@@ -104,8 +119,13 @@ router.put("/:id", upload.single("picture"), async (req, res) => {
 //DELETE
 
 router.delete("/:id", async (req, res) => {
-  await tweetModel.findByIdAndDelete(req.params.id);
-  res.send("Deleted sucessfully");
+  const token = req.cookies.accessToken;
+  const decoded = await jwt.verify(token, process.env.SECRET_KEY);
+  const user = await ProfilesModel.findOne({ _id: decoded.id });
+  if (user) {
+    await tweetModel.findByIdAndDelete(req.params.id);
+    res.send("Deleted sucessfully");
+  }
 });
 
 module.exports = router;
