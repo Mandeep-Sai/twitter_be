@@ -1,5 +1,6 @@
 const express = require("express");
 const ProfilesSchema = require("./schema");
+const tweetModel = require("../tweets/schema");
 const profilesRouter = express.Router();
 const multer = require("multer");
 const fs = require("fs-extra");
@@ -19,10 +20,12 @@ profilesRouter.get("/", async (req, res, next) => {
 });
 
 // Get single profile
-profilesRouter.get("/:username", async (req, res, next) => {
+profilesRouter.get("/me", async (req, res, next) => {
   try {
-    const username = req.params.username;
-    const profile = await ProfilesSchema.findOne({ username: username });
+    const token = req.cookies.accessToken;
+    const decoded = await jwt.verify(token, process.env.SECRET_KEY);
+    console.log(decoded);
+    const profile = await ProfilesSchema.findById(decoded.id);
     if (profile) {
       res.status(200).send(profile);
     } else {
@@ -41,6 +44,27 @@ profilesRouter.get("/voice/:username", async (req, res, next) => {
   try {
     const name = req.params.username;
     const profile = await ProfilesSchema.find({ username: name });
+    if (profile) {
+      res.status(200).send(profile);
+    } else {
+      const error = new Error();
+      error.httpStatusCode = 404;
+      next(error);
+    }
+  } catch (error) {
+    console.log(error);
+    next("While reading profiles list a problem occurred!");
+  }
+});
+
+profilesRouter.get("/:username", async (req, res, next) => {
+  try {
+    const token = req.cookies.accessToken;
+    const decoded = await jwt.verify(token, process.env.SECRET_KEY);
+
+    const profile = await ProfilesSchema.findOne({
+      username: req.params.username,
+    });
     if (profile) {
       res.status(200).send(profile);
     } else {
@@ -107,7 +131,25 @@ profilesRouter.post(
       ),
     };
     //
+    async function asyncForEach(array, callback) {
+      for (let index = 0; index < array.length; index++) {
+        await callback(array[index], index, array);
+      }
+    }
+    //
     await ProfilesSchema.findByIdAndUpdate(req.params.id, obj);
+    const token = req.cookies.accessToken;
+    const decoded = await jwt.verify(token, process.env.SECRET_KEY);
+    const modifiedUser = await ProfilesSchema.findOne({ _id: decoded.id });
+    const tweets = await tweetModel.find({
+      "user.username": modifiedUser.username,
+    });
+    asyncForEach(tweets, async (tweet) => {
+      await tweetModel.findByIdAndUpdate(tweet._id, { user: modifiedUser });
+    });
+
+    console.log(tweets);
+
     res.send("image added successfully");
   }
 );
@@ -169,10 +211,12 @@ profilesRouter.post(
 );
 
 // Modifie a profile
-profilesRouter.put("/:id", async (req, res, next) => {
+profilesRouter.put("/me", async (req, res, next) => {
   try {
-    const profile = await ProfilesSchema.findOneAndUpdate(
-      req.params.id,
+    const token = req.cookies.accessToken;
+    const decoded = await jwt.verify(token, process.env.SECRET_KEY);
+    const profile = await ProfilesSchema.findByIdAndUpdate(
+      decoded.id,
       req.body
     );
     if (profile) {
@@ -188,9 +232,11 @@ profilesRouter.put("/:id", async (req, res, next) => {
 });
 
 // Delete a profile
-profilesRouter.delete("/:id", async (req, res, next) => {
+profilesRouter.delete("/me", async (req, res, next) => {
   try {
-    const profile = await ProfilesSchema.findByIdAndDelete(req.params.id);
+    const token = req.cookies.accessToken;
+    const decoded = await jwt.verify(token, process.env.SECRET_KEY);
+    const profile = await ProfilesSchema.findByIdAndDelete(decoded.id);
     if (profile) {
       res.status(200).send("Delete!");
     } else {
