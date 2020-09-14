@@ -34,7 +34,7 @@ mongoose
     useUnifiedTopology: true,
   })
   .then(
-    server.listen(3003, () => {
+    server.listen(process.env.PORT || 3003, () => {
       console.log(`working on port 3003`);
     })
   );
