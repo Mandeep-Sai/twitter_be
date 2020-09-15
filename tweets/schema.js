@@ -5,7 +5,6 @@ const tweetSchema = new Schema(
   {
     text: {
       type: String,
-      required: true,
     },
     image: {
       type: Buffer,
