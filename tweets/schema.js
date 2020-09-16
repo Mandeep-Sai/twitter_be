@@ -10,6 +10,8 @@ const tweetSchema = new Schema(
       type: Buffer,
     },
     user: ProfilesModel.schema,
+    likes: Number,
+    likedBy: Array,
   },
   { timestamps: true }
 );

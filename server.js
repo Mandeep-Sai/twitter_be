@@ -33,9 +33,30 @@ server.use("/tweets", tweetRoutes);
 server.use("/profiles", profileRoutes);
 
 //socket
-
+let users = [];
 io.on("connection", (socket) => {
-  console.log("socketId", socket.id);
+  let id = socket.id;
+  socket.on("info", ({ username }) => {
+    const userExists = users.find((user) => user.username === username);
+    if (!userExists) {
+      users.push({ username, id });
+    }
+    user = username;
+    console.log(users);
+  });
+  socket.on("likeAdded", ({ tweetedBy, likedBy, tweet }) => {
+    console.log(tweet);
+    const tweetOwner = users.find((user) => user.username === tweetedBy);
+    if (tweetOwner) {
+      io.to(tweetOwner.id).emit("notification", { tweetedBy, likedBy, tweet });
+    }
+  });
+
+  socket.on("disconnect", () => {
+    let newUsers = users.filter((element) => element.username !== user);
+    users = newUsers;
+    console.log("disconnected", newUsers);
+  });
 });
 
 const url =
