@@ -42,20 +42,26 @@ io.on("connection", (socket) => {
       users.push({ username, id });
     }
     user = username;
-    console.log(users);
   });
-  socket.on("likeAdded", ({ tweetedBy, likedBy, tweet }) => {
-    console.log(tweet);
+  socket.on("likeAdded", ({ tweetedBy, likedBy, tweetText, tweetId }) => {
     const tweetOwner = users.find((user) => user.username === tweetedBy);
     if (tweetOwner) {
-      io.to(tweetOwner.id).emit("notification", { tweetedBy, likedBy, tweet });
+      io.to(tweetOwner.id).emit("notification", {
+        tweetedBy,
+        likedBy,
+        tweetText,
+        tweetId,
+      });
     }
+  });
+  socket.on("updateLikes", ({ tweetId }) => {
+    console.log("here");
+    io.emit("increaseLikes", { tweetId });
   });
 
   socket.on("disconnect", () => {
     let newUsers = users.filter((element) => element.username !== user);
     users = newUsers;
-    console.log("disconnected", newUsers);
   });
 });
 
