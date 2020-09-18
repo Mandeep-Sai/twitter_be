@@ -43,10 +43,18 @@ router.post("/", async (req, res) => {
 router.post("/addLike", async (req, res) => {
   let tweet = await tweetModel.findById(req.body.tweetId);
   let updatedLikes = tweet.likes + 1;
-  let updatedTweet = await tweetModel.findByIdAndUpdate(req.body.tweetId, {
+  await tweetModel.findByIdAndUpdate(req.body.tweetId, {
     likes: updatedLikes,
   });
-  console.log(updatedTweet);
+  let token = req.cookies.accessToken;
+  let decoded = await jwt.verify(token, process.env.SECRET_KEY);
+  let user = await ProfilesModel.findOne({ _id: decoded.id });
+  let updatedLikedTweets = user.likedTweets.concat(req.body.tweetId);
+  console.log(updatedLikedTweets);
+  await ProfilesModel.findByIdAndUpdate(decoded.id, {
+    likedTweets: updatedLikedTweets,
+  });
+
   res.send("added like");
 });
 router.post("/removeLike", async (req, res) => {
@@ -55,7 +63,16 @@ router.post("/removeLike", async (req, res) => {
   let updatedTweet = await tweetModel.findByIdAndUpdate(req.body.tweetId, {
     likes: updatedLikes,
   });
-  console.log(updatedTweet);
+
+  let token = req.cookies.accessToken;
+  let decoded = await jwt.verify(token, process.env.SECRET_KEY);
+  let user = await ProfilesModel.findOne({ _id: decoded.id });
+  let updatedLikedTweets = user.likedTweets.filter(
+    (tweet) => tweet !== req.body.tweetId
+  );
+  await ProfilesModel.findByIdAndUpdate(decoded.id, {
+    likedTweets: updatedLikedTweets,
+  });
   res.send("removed like");
 });
 

@@ -29,6 +29,7 @@ const ProfilesSchema = new Schema(
     dob: {
       type: Date,
     },
+    likedTweets: Array,
   },
   { timestamps: true }
 );
