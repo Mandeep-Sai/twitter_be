@@ -62,11 +62,6 @@ io.on("connection", (socket) => {
         tweetId,
       });
     });
-    /*
-    io.emit("increaseLikes", {
-      tweetId,
-    });
-    */
   });
   socket.on("updateDislikes", ({ tweetId }) => {
     users.forEach((user) => {

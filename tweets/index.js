@@ -40,6 +40,25 @@ router.post("/", async (req, res) => {
   res.send(newTweet._id);
 });
 
+router.post("/addLike", async (req, res) => {
+  let tweet = await tweetModel.findById(req.body.tweetId);
+  let updatedLikes = tweet.likes + 1;
+  let updatedTweet = await tweetModel.findByIdAndUpdate(req.body.tweetId, {
+    likes: updatedLikes,
+  });
+  console.log(updatedTweet);
+  res.send("added like");
+});
+router.post("/removeLike", async (req, res) => {
+  let tweet = await tweetModel.findById(req.body.tweetId);
+  let updatedLikes = tweet.likes - 1;
+  let updatedTweet = await tweetModel.findByIdAndUpdate(req.body.tweetId, {
+    likes: updatedLikes,
+  });
+  console.log(updatedTweet);
+  res.send("removed like");
+});
+
 router.post("/:id", upload.single("picture"), async (req, res) => {
   try {
     if (req.file) {
