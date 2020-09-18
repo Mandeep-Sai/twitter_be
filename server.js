@@ -36,6 +36,7 @@ server.use("/profiles", profileRoutes);
 let users = [];
 io.on("connection", (socket) => {
   let id = socket.id;
+  let user;
   socket.on("info", ({ username }) => {
     const userExists = users.find((user) => user.username === username);
     if (!userExists) {
@@ -45,6 +46,7 @@ io.on("connection", (socket) => {
   });
   socket.on("likeAdded", ({ tweetedBy, likedBy, tweetText, tweetId }) => {
     const tweetOwner = users.find((user) => user.username === tweetedBy);
+    console.log(tweetOwner);
     if (tweetOwner) {
       io.to(tweetOwner.id).emit("notification", {
         tweetedBy,
@@ -55,8 +57,23 @@ io.on("connection", (socket) => {
     }
   });
   socket.on("updateLikes", ({ tweetId }) => {
-    console.log("here");
-    io.emit("increaseLikes", { tweetId });
+    users.forEach((user) => {
+      io.to(user.id).emit("increaseLikes", {
+        tweetId,
+      });
+    });
+    /*
+    io.emit("increaseLikes", {
+      tweetId,
+    });
+    */
+  });
+  socket.on("updateDislikes", ({ tweetId }) => {
+    users.forEach((user) => {
+      io.to(user.id).emit("decreaseLikes", {
+        tweetId,
+      });
+    });
   });
 
   socket.on("disconnect", () => {

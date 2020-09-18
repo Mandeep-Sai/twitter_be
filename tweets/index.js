@@ -34,7 +34,7 @@ router.post("/", async (req, res) => {
   const token = req.cookies.accessToken;
   const decoded = await jwt.verify(token, process.env.SECRET_KEY);
   const user = await ProfilesModel.findOne({ _id: decoded.id });
-  var obj = { ...req.body, user };
+  var obj = { ...req.body, user, likes: 0 };
   const newTweet = new tweetModel(obj);
   await newTweet.save();
   res.send(newTweet._id);
