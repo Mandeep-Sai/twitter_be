@@ -87,12 +87,11 @@ profilesRouter.post("/login", async (req, res) => {
     req.body.password,
     profile.password
   );
-  console.log(isAuthorized);
   if (isAuthorized) {
     const secretkey = process.env.SECRET_KEY;
     const payload = { id: profile._id };
     const token = await jwt.sign(payload, secretkey, { expiresIn: "1 week" });
-    console.log(token);
+
     res.cookie("accessToken", token, {
       httpOnly: true,
       sameSite: "none",
@@ -147,8 +146,6 @@ profilesRouter.post(
     asyncForEach(tweets, async (tweet) => {
       await tweetModel.findByIdAndUpdate(tweet._id, { user: modifiedUser });
     });
-
-    console.log(tweets);
 
     res.send("image added successfully");
   }
@@ -212,6 +209,7 @@ profilesRouter.post(
 
 // Modifie a profile
 profilesRouter.put("/me", async (req, res, next) => {
+  // console.log("here", req.body);
   try {
     const token = req.cookies.accessToken;
     const decoded = await jwt.verify(token, process.env.SECRET_KEY);
