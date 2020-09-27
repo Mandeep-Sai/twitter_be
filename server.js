@@ -22,8 +22,7 @@ const corsOptions = {
 };
 
 const server = express();
-const socketServer = express();
-const app = http.createServer(socketServer);
+const app = http.createServer(server);
 
 const io = socketio(app);
 server.use(express.json({ limit: "50mb" }));
@@ -37,6 +36,7 @@ let users = [];
 io.on("connection", (socket) => {
   let id = socket.id;
   let user;
+  console.log(id);
   socket.on("info", ({ username }) => {
     const userExists = users.find((user) => user.username === username);
     if (!userExists) {
@@ -85,13 +85,10 @@ mongoose
     useUnifiedTopology: true,
   })
   .then(
-    server.listen(process.env.PORT || 3003, () => {
+    app.listen(process.env.PORT || 3003, () => {
       console.log(`working on port 3003`);
     })
   );
 mongoose.connection.on("connected", () => {
   console.log("connected to atlas");
-});
-app.listen(3004, () => {
-  console.log("sockets running on 3004");
 });
