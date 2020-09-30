@@ -9,7 +9,7 @@ const http = require("http");
 const socketio = require("socket.io");
 dotenv.config();
 
-const whitelist = ["http://localhost:3000"];
+const whitelist = ["http://localhost:3000", "https://twitterfe.herokuapp.com"];
 const corsOptions = {
   origin: (origin, callback) => {
     if (whitelist.indexOf(origin) !== -1 || !origin) {
@@ -77,10 +77,8 @@ io.on("connection", (socket) => {
   });
 });
 
-const url =
-  "mongodb+srv://user7:user@community.hw7hj.mongodb.net/community?retryWrites=true&w=majority";
 mongoose
-  .connect(url, {
+  .connect(process.env.MONGO_URL, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
