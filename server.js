@@ -27,7 +27,7 @@ const app = http.createServer(server);
 const io = socketio(app);
 server.use(express.json({ limit: "50mb" }));
 server.use(cookieParser());
-server.use(cors());
+server.use(cors(corsOptions));
 server.use("/tweets", tweetRoutes);
 server.use("/profiles", profileRoutes);
 
