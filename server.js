@@ -27,7 +27,7 @@ const app = http.createServer(server);
 const io = socketio(app);
 server.use(express.json({ limit: "50mb" }));
 server.use(cookieParser());
-server.use(cors(corsOptions));
+server.use(cors());
 server.use("/tweets", tweetRoutes);
 server.use("/profiles", profileRoutes);
 
@@ -83,13 +83,10 @@ mongoose
     useUnifiedTopology: true,
   })
   .then(
-    server.listen(process.env.PORT || 3003, () => {
+    app.listen(process.env.PORT || 3003, () => {
       console.log(`working on port 3003`);
     })
   );
 mongoose.connection.on("connected", () => {
   console.log("connected to atlas");
-});
-app.listen(process.env.PORT, () => {
-  console.log("sockets");
 });
