@@ -83,21 +83,25 @@ profilesRouter.post("/login", async (req, res) => {
   const profile = await ProfilesSchema.findOne({
     $or: [{ username: req.body.username }, { email: req.body.username }],
   });
-  const isAuthorized = await bcrypt.compare(
-    req.body.password,
-    profile.password
-  );
-  if (isAuthorized) {
-    const secretkey = process.env.SECRET_KEY;
-    const payload = { id: profile._id };
-    const token = await jwt.sign(payload, secretkey, { expiresIn: "1 week" });
+  if (profile) {
+    const isAuthorized = await bcrypt.compare(
+      req.body.password,
+      profile.password
+    );
+    if (isAuthorized) {
+      const secretkey = process.env.SECRET_KEY;
+      const payload = { id: profile._id };
+      const token = await jwt.sign(payload, secretkey, { expiresIn: "1 week" });
 
-    res.cookie("accessToken", token, {
-      httpOnly: true,
-      sameSite: "none",
-      secure: false,
-    });
-    res.send("ok");
+      res.cookie("accessToken", token, {
+        httpOnly: true,
+        sameSite: "none",
+        secure: false,
+      });
+      res.send("ok");
+    } else {
+      res.status(401).send("Invalid credentials");
+    }
   } else {
     res.status(401).send("Invalid credentials");
   }
